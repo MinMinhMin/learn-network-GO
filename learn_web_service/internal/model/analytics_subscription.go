@@ -1,10 +1,17 @@
 package model
 
+type NFType string
+
+const (
+	NFTypeAMF NFType = "AMF"
+	NFTypePCF NFType = "PCF"
+	NFTypeSMF NFType = "SMF"
+)
+
 type SubscribeRequest struct {
-	ConsumerID      string   `json:"consumerId"`
-	AnalyticsIDs    []string `json:"analyticsIds"`
-	CallbackURL     string   `json:"callbackUrl"`
-	IntervalSeconds int      `json:"intervalSeconds"`
+	ConsumerID   string `json:"consumerId"`
+	ConsumerType NFType `json:"consumerType"`
+	AnalyticsID  string `json:"analyticsId"`
 }
 
 type SubscribeResponse struct {
@@ -16,11 +23,6 @@ type Subscription struct {
 	SubscribeRequest
 	SubscriptionID string `json:"subscriptionId"`
 	Active         bool   `json:"active"`
-}
-
-type NotifyRequest struct {
-	SubscriptionID string          `json:"subscriptionId"`
-	Report         AnalyticsReport `json:"report"`
 }
 
 type AnalyticsReport struct {
