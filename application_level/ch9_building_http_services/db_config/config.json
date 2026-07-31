@@ -1,0 +1,6 @@
+{
+  "mongo_uri": "mongodb+srv://minmin:<pass>@gocluster.wpto6mo.mongodb.net/?appName=GoCluster",
+  "database": "go_http_db",
+  "collection": "users",
+  "server_address": ":8080"
+}
