@@ -91,7 +91,16 @@ func (h *SubscriptionHandler) Subscribe(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *SubscriptionHandler) ListSubscriptions(w http.ResponseWriter, r *http.Request) {
-	writeJSON(w, http.StatusOK, h.service.ListActiveSubscriptions())
+	subscriptions, err := h.service.ListActiveSubscriptions()
+
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{
+			"message": err.Error(),
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, subscriptions)
 }
 
 func (h *SubscriptionHandler) GetAnalytics(w http.ResponseWriter, r *http.Request) {

@@ -9,8 +9,7 @@ import (
 	"learn-network-go/learn_web_service/internal/service"
 )
 
-func NewNWDAFServer(addr string) *http.Server {
-	subscriptionRepo := repository.NewSubscriptionRepository()
+func NewNWDAFServer(addr string, subscriptionRepo *repository.SubscriptionRepository) *http.Server {
 	subscriptionService := service.NewSubscriptionService(subscriptionRepo)
 	subscriptionHandler := handler.NewSubscriptionHandler(subscriptionService)
 

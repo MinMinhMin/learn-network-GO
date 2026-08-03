@@ -8,10 +8,11 @@ const (
 	NFTypeSMF NFType = "SMF"
 )
 
+// add bson tag for mongo db
 type SubscribeRequest struct {
-	ConsumerID   string `json:"consumerId"`
-	ConsumerType NFType `json:"consumerType"`
-	AnalyticsID  string `json:"analyticsId"`
+	ConsumerID   string `json:"consumerId" bson:"consumerId" `
+	ConsumerType NFType `json:"consumerType" bson:"consumerType"`
+	AnalyticsID  string `json:"analyticsId" bson:"analyticsId"`
 }
 
 type SubscribeResponse struct {
@@ -19,10 +20,11 @@ type SubscribeResponse struct {
 	Message        string `json:"message"`
 }
 
+// _id is for primary key , we use inline for flatten fields instead of nested loop fields
 type Subscription struct {
-	SubscribeRequest
-	SubscriptionID string `json:"subscriptionId"`
-	Active         bool   `json:"active"`
+	SubscribeRequest `bson:",inline"`
+	SubscriptionID   string `json:"subscriptionId" bson:"_id"`
+	Active           bool   `json:"active" bson:"active"`
 }
 
 type AnalyticsReport struct {

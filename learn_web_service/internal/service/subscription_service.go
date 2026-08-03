@@ -66,7 +66,9 @@ func (s *SubscriptionService) Subscribe(req model.SubscribeRequest) (model.Subsc
 		Active:           true,
 	}
 
-	s.repo.Save(sub)
+	if err := s.repo.Save(sub); err != nil {
+		return model.SubscribeResponse{}, err
+	}
 
 	return model.SubscribeResponse{
 		SubscriptionID: subscriptionID,
@@ -82,7 +84,7 @@ func (s *SubscriptionService) Unsubscribe(subscriptionID string) error {
 	return s.repo.Deactivate(subscriptionID)
 }
 
-func (s *SubscriptionService) ListActiveSubscriptions() []model.Subscription {
+func (s *SubscriptionService) ListActiveSubscriptions() ([]model.Subscription, error) {
 	return s.repo.ListActive()
 }
 

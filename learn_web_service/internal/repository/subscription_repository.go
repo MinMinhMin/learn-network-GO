@@ -1,70 +1,99 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"learn-network-go/learn_web_service/internal/model"
-	"sync"
+	"time"
+
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
+
+// mongoDB already have method to prevent race condition. To limit the time for each db interaction, we will use context with timeout
 
 var ErrSubscriptionNotFound = errors.New("subscription ID not found")
 
 type SubscriptionRepository struct {
-	mu            sync.RWMutex
-	subscriptions map[string]model.Subscription
+	collection *mongo.Collection
 }
 
-func NewSubscriptionRepository() *SubscriptionRepository {
+func NewSubscriptionRepository(collection *mongo.Collection) *SubscriptionRepository {
 	return &SubscriptionRepository{
-		subscriptions: make(map[string]model.Subscription),
+		collection: collection,
 	}
 }
 
-func (r *SubscriptionRepository) Save(sub model.Subscription) {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+func (r *SubscriptionRepository) Save(sub model.Subscription) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	r.subscriptions[sub.SubscriptionID] = sub
+	// Insert a subscription using InsertOne
+	_, err := r.collection.InsertOne(ctx, sub)
+	return err
 }
 
 func (r *SubscriptionRepository) FindByID(subscriptionID string) (model.Subscription, error) {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	sub, ok := r.subscriptions[subscriptionID]
+	var sub model.Subscription
 
-	if !ok {
+	// find a subscription by its id with FindOne using bson.M (map)
+	err := r.collection.FindOne(ctx, bson.M{
+		"_id": subscriptionID,
+	}).Decode(&sub)
+
+	if errors.Is(err, mongo.ErrNoDocuments) {
 		return model.Subscription{}, ErrSubscriptionNotFound
 	}
 
-	return sub, nil
+	return sub, err
 }
 
-func (r *SubscriptionRepository) ListActive() []model.Subscription {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
+func (r *SubscriptionRepository) ListActive() ([]model.Subscription, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// using mongo.Collection.Find will return a cursor (iter) to iterate all the docs that match the filter
+	// mongo.Cursor have .Next(), .Close(), .All()
+	cursor, err := r.collection.Find(ctx, bson.M{
+		"active": true,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer cursor.Close(ctx)
 
 	var result []model.Subscription
 
-	for _, sub := range r.subscriptions {
-		if sub.Active {
-			result = append(result, sub)
-		}
+	if err := cursor.All(ctx, &result); err != nil {
+		return nil, err
 	}
 
-	return result
+	return result, nil
 }
 
 func (r *SubscriptionRepository) Deactivate(subscriptionID string) error {
-	r.mu.Lock()
-	defer r.mu.Unlock()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
 
-	sub, ok := r.subscriptions[subscriptionID]
-	if !ok {
-		return ErrSubscriptionNotFound
+	// $set is set method
+	result, err := r.collection.UpdateOne(
+		ctx,
+		bson.M{"_id": subscriptionID},
+		bson.M{"$set": bson.M{"active": false}},
+	)
+
+	if err != nil {
+		return err
 	}
 
-	sub.Active = false
-	r.subscriptions[subscriptionID] = sub
+	if result.MatchedCount == 0 {
+		return ErrSubscriptionNotFound
+	}
 
 	return nil
 }

@@ -4,6 +4,7 @@ go 1.26.4
 
 require (
 	github.com/awoodbeck/gnp v0.0.0-20251116162509-ab969ddd12af
+	github.com/joho/godotenv v1.5.1
 	go.mongodb.org/mongo-driver/v2 v2.8.0
 )
 
