@@ -14,6 +14,24 @@ NWDAF chạy tại
 http://localhost:8080
 ```
 
+## Chạy AMF server
+
+```bash
+go run ./learn_web_service/cmd/amf
+```
+
+AMF chạy tại
+
+```text
+http://localhost:8081
+```
+
+AMF có endpoint nhận notify từ NWDAF:
+
+```text
+POST /notify
+```
+
 ## Subscribe
 
 ```bash
@@ -22,7 +40,8 @@ curl -X POST http://localhost:8080/subscriptions \
   -d '{
     "consumerId": "amf-1",
     "consumerType": "AMF",
-    "analyticsId": "UE Mobility"
+    "analyticsId": "UE Mobility",
+    "callbackUrl": "http://localhost:8081/notify"
   }'
 ```
 
@@ -40,6 +59,28 @@ Response:
 ```bash
 curl http://localhost:8080/subscriptions
 ```
+
+## Notify
+
+NWDAF dùng cron schedule trong `config.nwdaf.json` để định kỳ kiểm tra các subscription đang active.
+
+Ví dụ:
+
+```json
+{
+  "notify_schedule": "*/10 * * * * *"
+}
+```
+
+Với `cron.WithSeconds()`, schedule trên nghĩa là NWDAF kiểm tra mỗi 10 giây.
+
+Nếu có subscription active, NWDAF sẽ gửi notify tới `callbackUrl` của subscription:
+
+```text
+http://localhost:8081/notify
+```
+
+AMF sẽ log nội dung notify nhận được.
 
 ## Get analytics
 
@@ -63,4 +104,4 @@ curl -X DELETE http://localhost:8080/subscriptions/sub-1
 ```
 
 
-Subscription vừa hủy sẽ không nằm trong list active
+Subscription vừa hủy sẽ không nằm trong list active và NWDAF sẽ không gửi notify cho subscription đó nữa.

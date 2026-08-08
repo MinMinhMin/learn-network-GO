@@ -4,8 +4,9 @@ import (
 	"context"
 	"errors"
 	"learn-network-go/learn_web_service/internal/config"
-	"learn-network-go/learn_web_service/internal/repository"
-	"learn-network-go/learn_web_service/internal/server"
+	"learn-network-go/learn_web_service/internal/nwdaf/repository"
+	"learn-network-go/learn_web_service/internal/nwdaf/server"
+	"learn-network-go/learn_web_service/internal/nwdaf/service"
 	"log"
 	"net/http"
 	"time"
@@ -18,7 +19,7 @@ import (
 func main() {
 
 	// load config
-	cfg, err := config.Load("learn_web_service/config.json")
+	cfg, err := config.Load("learn_web_service/config.nwdaf.json")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,9 +50,17 @@ func main() {
 	collection := client.Database(cfg.Database).Collection(cfg.Collection)
 
 	subscriptionRepo := repository.NewSubscriptionRepository(collection)
+	subscriptionService := service.NewSubscriptionService(subscriptionRepo)
+
+	// notify
+	notifyScheduler := service.NewNotifyScheduler(subscriptionService)
+	if err := notifyScheduler.Start(cfg.NotifySchedule); err != nil {
+		log.Fatal(err)
+	}
+	defer notifyScheduler.Stop()
 
 	// start server
-	srv := server.NewNWDAFServer(":8080", subscriptionRepo)
+	srv := server.NewNWDAFServer(cfg.ServerAddress, subscriptionService)
 
 	log.Printf("NWDAF API listening on %s", srv.Addr)
 

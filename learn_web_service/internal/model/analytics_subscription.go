@@ -13,6 +13,7 @@ type SubscribeRequest struct {
 	ConsumerID   string `json:"consumerId" bson:"consumerId" `
 	ConsumerType NFType `json:"consumerType" bson:"consumerType"`
 	AnalyticsID  string `json:"analyticsId" bson:"analyticsId"`
+	CallbackURL  string `json:"callbackUrl" bson:"callbackUrl"`
 }
 
 type SubscribeResponse struct {
@@ -30,4 +31,9 @@ type Subscription struct {
 type AnalyticsReport struct {
 	AnalyticsID string `json:"analyticsId"`
 	Value       string `json:"value"`
+}
+
+type NotifyRequest struct {
+	SubscriptionID string          `json:"subscriptionId"`
+	Report         AnalyticsReport `json:"report"`
 }

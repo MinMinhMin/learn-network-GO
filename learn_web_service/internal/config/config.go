@@ -9,10 +9,11 @@ import (
 )
 
 type Config struct {
-	MongoURI      string `json:"mongo_uri"`
-	Database      string `json:"database"`
-	Collection    string `json:"collection"`
-	ServerAddress string `json:"server_address"`
+	MongoURI       string `json:"mongo_uri"`
+	Database       string `json:"database"`
+	Collection     string `json:"collection"`
+	ServerAddress  string `json:"server_address"`
+	NotifySchedule string `json:"notify_schedule"`
 }
 
 func Load(path string) (Config, error) {

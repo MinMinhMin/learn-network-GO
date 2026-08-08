@@ -1,0 +1,7 @@
+{
+  "mongo_uri": "mongodb+srv://minmin:<gocluster_pass>@gocluster.wpto6mo.mongodb.net/?appName=GoCluster",
+  "database": "go_http_db",
+  "collection": "subscriptions",
+  "server_address": ":8080" ,
+  "notify_schedule": "*/10 * * * * *"
+}
